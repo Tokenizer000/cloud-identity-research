@@ -1,0 +1,73 @@
+Q1. How did APT29 get initial access to Microsoft in 
+January 2024?Name the specific control that was 
+absent. Explain why a test tenant specifically was 
+vulnerable when a production tenant may not have 
+been.
+
+Apt29 got initial access to microsoft through low 
+and slow password spray attack on microsoft's test 
+tenant accounts.
+
+MFA and CA was absent.
+
+A test tenant was vulnerable because MFA wasnt 
+implemented due to the fact that microsoft thought 
+that since it isnt a critical environment like the 
+production tenant that the security shoulnt be taken 
+seriously.
+
+Q2.Walk through a Scattered Spider help desk vishing 
+attack step by step.What exactly does the attacker 
+say? What does the help desk agent do?What technical 
+capability does the attacker have after the call 
+ends?
+
+Step 1: The attacker tries to log in with a 
+compromised employee's username and password and 
+when mfa is trigerred the call the help desk telling 
+them that they cant complete the mfa requirements 
+because the lost their mfa device. Step 2: Helpdesk 
+asks them to verify who they are by providing some 
+personal info. Since the attacker had already stolen 
+those info they provide it to the help desk which in 
+turn assign a new mfa device to them. Step 3: They 
+try to login again using those same credentials but 
+this time satisfying mfa. and access is granted to 
+the enterprise cloud account of the employee.
+
+After the call ends attacker now have the capabilty 
+to enumarate account, escalate privilege, move 
+laterally and exfiltrate.
+
+3.What is MagicWeb? What does it allow that Golden 
+SAML does not?Why is it more operationally dangerous 
+than Golden SAML? 
+MagicWeb is a malware created by 
+apt29 and designed mainly to attack adfs by 
+overriding its authentication result. It allows an 
+attacker to actively manipulate authentication 
+result without any signing key. Its more dangerous 
+then golden saml because even with hardware backed 
+key protection it still persists and it doesnt need 
+to steal any key to do what golden saml does.
+
+4.How did Storm-0558 forge tokens? What was the root 
+cause at theimplementation level? Why did the forged 
+tokens pass validation? Storm-0558 forged valid 
+oauth tokens using stolen microsoft consumer signing 
+key. Root cause was that microsoft's token 
+validation code verified signature of tokens but 
+doesnt check which key is being used for a specific 
+request and if that key is authorized to access a 
+given endpoint. eg if a token signed with a consumer 
+signing key is authorized to perform action on an 
+enterprise endpoint The forged token passed 
+validation because its signature was valid and its 
+signing key came from a trusted issuer.
+
+5.What do all four groups share in how they think 
+about persistence?Not technique — the underlying 
+mental model about what persistence means. They 
+understood that the highest form of persistence is 
+achieved by abusing trusts and leveraging identities 
+instead of deploying malwares.

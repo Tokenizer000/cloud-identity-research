@@ -1,0 +1,7 @@
+Technique: password spray against test tenant, legacy OAuth app, no CA. 
+Mental model: they mapped the entire identity perimeter before touching anything. Test tenants exist at the edge of an organization's attention. They are provisioned with relaxed policies and forgotten. The weakest link in the perimeter is almost never the production environment. Your question: in any target environment, what is the full inventory of tenants, including test and developer tenants? What is the policy gap between production and non-production identity infrastructure? Add this to open_questions.md.
+
+Technique: ADFS token signing certificate theft to Golden SAML. Mental model: persistence based on key material is categorically more durable than persistence based on credentials. A password reset removes credential-based persistence. It does not remove key-based persistence. They understood that the signing certificate is the root of trust — whoever controls it controls the assertion of any identity in the federated environment. They targeted the root of trust, not an account.
+
+Technique: MagicWeb DLL injection into ADFS. 
+Mental model: if you can control the authentication decision point itself, you do not need credentials or key material at all. MagicWeb does not authenticate — it overrides the result. This is the logical end state of identity persistence: the system believes whatever the attacker tells it to believe, and the logs show only successful authentications.

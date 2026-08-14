@@ -1,0 +1,6 @@
+Technique: purchased credentials from dark web markets. Recruited insiders via Telegram with direct monetary offers. 
+Mental model: the cheapest path to initial access is not technical skill. If someone inside the target organization will sell access, no amount of technical capability is required. They treated the human attack surface with the same rigor that technical attackers treat the technical surface.
+Technique: targeted MFA recovery codes, not the MFA device itself. 
+Mental model: the recovery mechanism is always weaker than the primary mechanism. This is structurally guaranteed. Recovery must be accessible to users who have lost their primary factor. Therefore it must rely on weaker verification. The backup codes in a Google Authenticator screenshot stored in a target's personal Google Drive is a better target than the authenticator app itself.
+Technique: Okta support engineer compromise → visibility into customer tenants. 
+Mental model: third-party access to your infrastructure is a trust boundary that almost no organization models as part of their attack surface. Support engineers require privileged access to help customers. That access is the attack surface.

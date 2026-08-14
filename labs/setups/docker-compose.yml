@@ -1,0 +1,143 @@
+version: '3.8'
+
+# ================================================================
+# PHASE 1 IDENTITY ATTACK LAB
+# Services: Keycloak (IdP) + PostgreSQL + OpenLDAP + Flask victim app
+#
+# FIRST TIME SETUP:
+#   Add to /etc/hosts:  127.0.0.1 keycloak
+#   Then: docker compose up --build
+#
+# REBUILD (clean slate):
+#   docker compose down -v && docker compose up --build
+#
+# Access:
+#   Flask victim app:    http://localhost:5000
+#   Keycloak admin:      http://keycloak:8080/admin  (admin/admin)
+#   phpLDAPadmin:        http://localhost:8090
+#   LDAP:                localhost:389
+#
+# Test users:
+#   alice / alice123  (role: user,  id: 1)
+#   bob   / bob123    (role: admin, id: 2)
+# ================================================================
+
+services:
+
+  # ── Keycloak database ──────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lab
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Keycloak IdP ───────────────────────────────────────────────
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:23.0
+    command: start-dev --import-realm
+    environment:
+      # Database
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      # Admin credentials
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      # Hostname — matches /etc/hosts entry
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: 8080
+      # Logging
+      KC_LOG_LEVEL: WARN
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - lab
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+
+  # ── Flask victim application ───────────────────────────────────
+  flask-app:
+    build: ./flask-app
+    ports:
+      - "5000:5000"
+    environment:
+      KEYCLOAK_URL: "http://keycloak:8080"
+      KEYCLOAK_REALM: "victim-corp"
+      CLIENT_ID: "flask-victim-app"
+      CLIENT_SECRET: "flask-secret-12345"
+      APP_URL: "http://localhost:5000"
+      SECRET_KEY: "lab-secret-key-not-for-production"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - lab
+
+  # ── OpenLDAP directory ─────────────────────────────────────────
+  # Used in later phases for directory-based identity attacks
+  openldap:
+    container_name: ldap
+    image: osixia/openldap:1.5.0
+    environment:
+      LDAP_ORGANISATION: "VictimCorp"
+      LDAP_DOMAIN: "victim.corp"
+      LDAP_ADMIN_PASSWORD: "admin"
+      LDAP_CONFIG_PASSWORD: "config"
+      LDAP_READONLY_USER: "true"
+      LDAP_READONLY_USER_USERNAME: "readonly"
+      LDAP_READONLY_USER_PASSWORD: "readonly123"
+      LDAP_TLS: "false"
+    ports:
+      - "389:389"
+    volumes:
+      - ldap_data:/var/lib/ldap
+      - ldap_config:/etc/ldap/slapd.d
+    networks:
+      - lab
+
+  # ── phpLDAPadmin UI ────────────────────────────────────────────
+  phpldapadmin:
+    image: osixia/phpldapadmin:0.9.0
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: "openldap"
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - "8090:80"
+    depends_on:
+      - openldap
+    networks:
+      - lab
+
+volumes:
+  postgres_data:
+  ldap_data:
+  ldap_config:
+
+networks:
+  lab:
+    driver: bridge

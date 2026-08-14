@@ -1,0 +1,64 @@
+{
+  "realm": "victim-corp",
+  "enabled": true,
+  "displayName": "VictimCorp",
+  "loginWithEmailAllowed": true,
+  "registrationAllowed": false,
+  "bruteForceProtected": false,
+  "users": [
+    {
+      "username": "alice",
+      "email": "alice@victim.corp",
+      "firstName": "Alice",
+      "lastName": "Smith",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{"type": "password", "value": "alice123", "temporary": false}],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "bob",
+      "email": "bob@victim.corp",
+      "firstName": "Bob",
+      "lastName": "Jones",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{"type": "password", "value": "bob123", "temporary": false}],
+      "realmRoles": ["user", "admin"]
+    }
+  ],
+  "roles": {
+    "realm": [
+      {"name": "user",  "description": "Regular user"},
+      {"name": "admin", "description": "Administrator"}
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "flask-victim-app",
+      "name": "Flask Victim App",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "flask-secret-12345",
+      "redirectUris": ["http://localhost:5000/*", "http://flask-app:5000/*"],
+      "webOrigins": ["http://localhost:5000", "http://flask-app:5000"],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect",
+      "attributes": {"access.token.lifespan": "3600"}
+    },
+    {
+      "clientId": "saml-victim-app",
+      "name": "SAML Victim App",
+      "enabled": true,
+      "protocol": "saml",
+      "redirectUris": ["http://localhost:5000/saml/acs"],
+      "attributes": {
+        "saml_assertion_consumer_url_post": "http://localhost:5000/saml/acs",
+        "saml.signing.certificate": "",
+        "saml.server.signature": "true"
+      }
+    }
+  ]
+}
